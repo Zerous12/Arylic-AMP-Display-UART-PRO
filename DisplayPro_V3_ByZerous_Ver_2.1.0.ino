@@ -1,3 +1,10 @@
+   /* Arylic-AMP-Display-UART-PRO
+   *0.91" Oled Display for Arylic AMP Devices
+   *Interface to Arylic Amp PRO v4
+   *Version: 2.1.0
+   * Last Update: 7/27/2023
+   */
+
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
