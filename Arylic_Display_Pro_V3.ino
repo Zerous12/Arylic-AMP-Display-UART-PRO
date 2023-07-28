@@ -1,8 +1,8 @@
    /* Arylic-AMP-Display-UART-PRO
    *0.91" Oled Display for Arylic AMP Devices
    *Interface to Arylic Amp PRO v4
-   *Version: 2.1.0
-   * Last Update: 7/27/2023
+   *Version: 2.1.4
+   * Last Update: 27/07/2023 23.28
    */
 
 #include <Wire.h>
@@ -22,7 +22,7 @@
 #define TX_PIN 17       // Serial2 TX a Amp RX
 #define LED_PIN 12     // Control para vúmetro retroiluminado
 
-//Modos de display
+//Modos de display (dispMode)
 #define SOURCE 1
 #define VOLUME 2
 #define CHN 3
@@ -30,7 +30,7 @@
 #define TRE 5
 #define BLANK 6
 
-// Variables globales para los modos y tiempos de visualización
+//VARIABLES GLOBALES PARA AJUSTES DEL PROGRAMA
 byte dispMode = SOURCE;
 byte prevdispMode = 1;
 unsigned long dispModeTemp_timer = 0;
@@ -39,26 +39,30 @@ unsigned long standbyBlinkInterval = 2000;        // Intervalo de parpadeo de ST
 const unsigned long DISP_UPDATE_INTERVAL = 1000; // Aqui ajustas el tiempo de actualizacion entre modos de visualizacion.
 bool dispModeTempSource = true;
 
+// Variables para medir el tiempo del comando MUT:1; Segun cambian los modos de entrada
+const unsigned long MUTE_DELAY = 700;    // Retraso en segundos (puedes ajustar este valor según tus necesidades)
+bool muteMode = false;                  //  Variable para almacenar el estado de MUTE
+bool receivedMuteOnCommand = false;
+unsigned long muteOnTime = 0;
+
+//Variables para almacenar datos procesados y estados UART
 bool initialDataReceived = false;    // variable para almacenar inicio de STA
 bool bluetoothConnected = false;    // Variable para almacenar el estado de conexión Bluetooth
 bool virtualBassEnabled = false;   // Variable para almacenar el estado del Virtual Bass
 bool beepEnabled = false;         // Variable para almacenar el estado del Beep
 bool standbyMode = false;        // Variable para almacenar el estado de STANDBY
-//bool dispModeTempMute = true;
-
-//Variables para almacenar datos procesados UART
-//int dispBalance = 0;
 int dispBass = 0;
 int dispTreble = 0;
 int dispVolume = 0;
 String dispChannel = "";
-String dispSource = "x_x!"; //Pre-carga de commandValue antes de inicio
-
+String dispSource = "x_x!"; //recupera el estado anterior de source antes de inicio del Loop Main
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1); // Configuración del display
 HardwareSerial uart(2);   // Uso de la interfaz de hardware Serial2
 
-// Función para procesar los comandos UART recibidos
+/*---------------------------------------------------------------------------------------------------
+                        Función para procesar los comandos UART recibidos
+---------------------------------------------------------------------------------------------------*/
 void processUARTCommand(const String& commandType, const String& commandValue) {
    // Aquí puedes agregar la lógica para procesar los comandos UART
   // y actualizar las variables de visualización en consecuencia
@@ -150,6 +154,22 @@ void processUARTCommand(const String& commandType, const String& commandValue) {
     standbyMode = true;
     showStandby();
   }
+  //Notificar acción de MUTE
+    if (commandType == "MUT" && commandValue == "1;") {
+        muteMode = true;
+        receivedMuteOnCommand = true;
+        muteOnTime = millis(); // Registrar el tiempo en que se recibió MUT:1;
+    } else if (commandType == "MUT" && commandValue == "0;") {
+        // Si se recibe MUT:0; antes del retraso, se establece muteMode = false y no se muestra nada en la pantalla
+        muteMode = false;
+        receivedMuteOnCommand = false;
+        if (receivedMuteOnCommand) {
+            showMute();
+            receivedMuteOnCommand = false;
+        } else {
+            showSource(); // Si no recibimos "MUT:1;", volver al modo SOURCE
+        }
+    }
 }
 // Función para cambiar al siguiente modo de visualización
 void switchDisplayMode() {
@@ -159,6 +179,9 @@ void switchDisplayMode() {
   }
 }
 
+/*---------------------------------------------------------------------------------------------------
+                                    Configuraciones del Setup
+---------------------------------------------------------------------------------------------------*/
 void setup() {
   Serial.begin(115200);
   Serial.println("Arrancando..");
@@ -214,7 +237,9 @@ void setup() {
   Serial.println("Inicializando el buble principal...");
   uart.flush();
 }
-
+/*---------------------------------------------------------------------------------------------------
+                                       Bucle Principal
+---------------------------------------------------------------------------------------------------*/
 void loop() {
     // Leer los datos del puerto UART
     if (uart.available() > 0) {
@@ -255,6 +280,12 @@ void loop() {
         dispMode = SOURCE; // Volver al modo SOURCE al recibir un comando que comience con "STA:"
       }
     }
+  } else if (muteMode) {
+        // Mostrar el mensaje de MUTE ON si el MUTE está activado y ha pasado el retraso
+        if (receivedMuteOnCommand && (millis() - muteOnTime) >= MUTE_DELAY) {
+            showMute();
+            receivedMuteOnCommand = false; // Reiniciar el indicador después de mostrar el mensaje
+        }
   } else {
       // Solo restablecer las variables después de un cambio de modo
     if (dispMode != prevdispMode || currentMillis > (dispModeTemp_timer + DISP_UPDATE_INTERVAL)) {
@@ -290,12 +321,11 @@ void loop() {
         dispModeTemp_timer = currentMillis;
         dispModeTempSource = false;
      }
-  }   
+  }
 }
-
-
-// Funciones de SHOW
-
+/*---------------------------------------------------------------------------------------------------
+                             Funciones para Muestra y Formato en OLED
+---------------------------------------------------------------------------------------------------*/
 void showVolume(const String& volumeValue) {
     if (!dispModeTempSource) {
       display.clearDisplay();
@@ -380,4 +410,12 @@ void showStandby() {
     display.clearDisplay();
     display.display();
   }
+}
+void showMute() {
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setTextColor(WHITE);
+    display.setCursor((SCREEN_WIDTH) / 1, (SCREEN_HEIGHT - 34));
+    display.print(" MUTE ON ");
+    display.display();
 }
