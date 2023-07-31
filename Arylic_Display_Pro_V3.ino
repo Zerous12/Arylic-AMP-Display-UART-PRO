@@ -1,8 +1,8 @@
    /* Arylic-AMP-Display-UART-PRO
    *0.91" Oled Display for Arylic AMP Devices
    *Interface to Arylic Amp PRO v4
-   *Version: 2.1.4
-   * Last Update: 27/07/2023 23.28
+   *Version: 2.1.5
+   * Last Update: 30/07/2023 23.15
    */
 
 #include <Wire.h>
@@ -84,7 +84,7 @@ void processUARTCommand(const String& commandType, const String& commandValue) {
     // Mapear el valor del volumen a "MAX" si es = 100
     dispVolume = commandValue.toInt();
     if (dispVolume == 100) {
-      showVolume("VOLUME MAX");
+      showNumberParamTwo("VOLUME","MAX");
     // Mapear el valor del volumen entre {0-99}
     } else {
       showNumberParam("Volume", dispVolume);
@@ -326,19 +326,6 @@ void loop() {
 /*---------------------------------------------------------------------------------------------------
                              Funciones para Muestra y Formato en OLED
 ---------------------------------------------------------------------------------------------------*/
-void showVolume(const String& volumeValue) {
-    if (!dispModeTempSource) {
-      display.clearDisplay();
-      display.setTextSize(2); 
-      display.setTextColor(WHITE);
-      display.invertDisplay(false);
-      display.setCursor((SCREEN_WIDTH) / 1, (SCREEN_HEIGHT - 34));
-      display.print(volumeValue);
-      display.display();
-      dispModeTemp_timer = millis();
-   }
-}
-
 void showNumberParamTwo(String parmName, String parmValue) {
     if (!dispModeTempSource) {
       display.clearDisplay();
@@ -346,9 +333,13 @@ void showNumberParamTwo(String parmName, String parmValue) {
       display.setTextColor(WHITE);
       display.invertDisplay(false);
       display.setCursor((SCREEN_WIDTH) / 1, (SCREEN_HEIGHT - 34) );
-      display.print(parmName + ": " + parmValue);
+      display.print(parmName + ":" + parmValue);
       display.display();
       dispModeTemp_timer = millis();
+      delay(500);
+      if (muteMode) {
+        showMute();
+      } else {} 
     }
 }
 
@@ -359,9 +350,13 @@ void showNumberParam(String parmName, int parmValue) {
       display.setTextColor(WHITE);
       display.invertDisplay(false);
       display.setCursor((SCREEN_WIDTH) / 1, (SCREEN_HEIGHT - 34) );
-      display.print(parmName + ": " + parmValue);
+      display.print(parmName + ":" + parmValue);
       display.display();
       dispModeTemp_timer = millis();
+      delay(500);
+      if (muteMode) {
+        showMute();
+      } else {} 
     }
 }
 
@@ -384,7 +379,11 @@ void showNotification(const String& message) {
   display.println(message);
   display.display();
   delay(2000);
-  showSource(); // Mostrar nuevamente el modo de visualización actual después de 2 segundos
+  if (muteMode) {
+    showMute();
+  } else {
+    showSource();
+  } // Mostrar nuevamente el modo de visualización actual después de 2 segundos
 }
 
 // Nuevo método para mostrar el mensaje de STANDBY
