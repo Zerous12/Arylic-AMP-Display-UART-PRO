@@ -103,10 +103,18 @@ void processUARTCommand(const String& commandType, const String& commandValue) {
     showNumberParam("Treble", dispTreble);
   
   } else if (commandType == "CHN") {
-    // Obtener el valor del CHN del comando recibido
-    dispChannel = commandValue;
-    // Actualizar la variable dispTreble con el valor del Channel
-    showNumberParamTwo("Channel", dispChannel);
+    if (commandValue == "L;") {
+        dispChannel = "LEFT";
+    } else if (commandValue == "R;") {
+        dispChannel = "RIGHT";
+    } else if (commandValue == "S;") {
+        dispChannel = "STEREO";
+    } else {
+        // Valor de canal no reconocido, muestra "Unknown"
+        dispChannel = "Unknown";
+    }
+    // Actualizar la variable dispChannel y mostrarla en pantalla
+    showNumberParamTwo("CHN", dispChannel);
     
     //Notificar accion de LED    
   } else if (commandType == "LED") {
