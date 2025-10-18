@@ -1,60 +1,65 @@
 # Arylic-AMP-Display-UART-PRO
 0.91" Oled Display for Arylic AMP Devices
 
-**Control de Visualización con ESP32 y Display OLED 0.91”**
+**Display Control with ESP32 and 0.91” OLED Display**
 
-Este proyecto utiliza un ESP32S junto con un Display OLED 0.91” para mostrar información sobre el estado de un amplificador de audio. El código permite recibir comandos a través de una comunicación UART (Serial) para cambiar entre diferentes modos de visualización, como el origen de la señal, el volumen, el bajo, el agudo y más. Además, se ha implementado una función de modo STANDBY que muestra un mensaje de "STANDBY" en pantalla y parpadea cada 2 segundos hasta que se recibe un comando para volver al modo SOURCE.
+This project uses an ESP32S together with a 0.91” OLED Display to show information about the status of an audio amplifier. The code allows receiving commands through UART (Serial) communication to switch between different display modes, such as signal source, volume, bass, treble, and more. In addition, a STANDBY mode function has been implemented, which shows a "STANDBY" message on the screen and blinks every 2 seconds until a command is received to return to the SOURCE mode.
 
-**Componentes utilizados**
+**Components Used**
 
-- ESP32 (se ha utilizado un NodeMCU ESP32S en este ejemplo)
-- Display OLED (Se ha utilizado un display I2C OLED de 128x32 píxeles)
-- Amplificador de Audio con capacidad de enviar comandos UART a través de su puerto serial (up2Stream PRO\_V4)
+- ESP32 (a NodeMCU ESP32S was used in this example)
+- OLED Display (an I2C OLED display of 128x32 pixels was used)
+- Audio Amplifier capable of sending UART commands through its serial port (up2Stream PRO\_V4)
 
-**Conexiones**
+**Connections**
 
-Conectar los componentes siguiendo estas conexiones:
+Connect the components following these connections:
 
-- Display OLED:
-  - Pin VCC a 5V
-  - Pin GND a GND
-  - Pin SDA a pin SDA del ESP32 (por ejemplo, pin 21)
-  - Pin SCL a pin SCL del ESP32 (por ejemplo, pin 22)
-- Módulo ESP32:
-  - VCC a 5V
-  - GND a GND
-  - RX al TX del Amplificador (por ejemplo, pin 16)
-  - TX al RX del Amplificador (por ejemplo, pin 17)
-- Amplificador de Audio:
-  - Conectar el puerto serial del amplificador a la UART del ESP32 (por ejemplo, GND, RX\_PIN y TX\_PIN)
+- OLED Display:
+  - Pin VCC to 5V
+  - Pin GND to GND
+  - Pin SDA to the SDA pin of the ESP32 (for example, pin 21)
+  - Pin SCL to the SCL pin of the ESP32 (for example, pin 22)
+- ESP32 Module:
+  - VCC to 5V
+  - GND to GND
+  - RX to the TX of the Amplifier (for example, pin 16)
+  - TX to the RX of the Amplifier (for example, pin 17)
+- Audio Amplifier:
+  - Connect the amplifier’s serial port to the UART of the ESP32 (for example, GND, RX\_PIN, and TX\_PIN)
 
-**Librerías utilizadas**
+<img width="1149" height="1335" alt="diagram_ESP_32+UART" src="https://github.com/user-attachments/assets/4f3b0981-9d84-4605-a4e6-08cc4f6a1161" />
 
-El código utiliza las siguientes librerías para el correcto funcionamiento del display OLED y la comunicación UART:
+**Libraries Used**
 
-- Wire.h: Para la comunicación I2C con el display OLED.
-- Adafruit\_GFX.h: Para el manejo de gráficos y texto en el display OLED.
-- Adafruit\_SSD1306.h: Para el control del display OLED.
-- HardwareSerial.h: Para la comunicación UART (Serial) con el amplificador de audio.
+The code uses the following libraries for proper operation of the OLED display and UART communication:
 
-**Funcionalidades**
+- Wire.h: For I2C communication with the OLED display.
+- Adafruit\_GFX.h: For handling graphics and text on the OLED display.
+- Adafruit\_SSD1306.h: For controlling the OLED display.
+- HardwareSerial.h: For UART (Serial) communication with the audio amplifier.
 
-- El código permite recibir comandos a través de la comunicación UART y cambiar entre diferentes modos de visualización.
-- Los modos de visualización incluyen el origen de la señal, el volumen, el bajo, el agudo y un modo BLANK (aun no implementado) para apagar la pantalla.
-- Se ha implementado un modo STANDBY que muestra un mensaje de "STANDBY" en pantalla y parpadea cada 2 segundos hasta que se recibe un comando para volver al modo SOURCE.
-- El código es capaz de procesar comandos específicos (SRC, VOL, BAS, TRE, CHN, LED, BTC, VBS, BEP) y actualizar la información en pantalla en consecuencia.
+**Functionalities**
 
-**Uso**
+- The code allows receiving commands through UART communication and switching between different display modes.
+- The display modes include signal source, volume, bass, treble, and a BLANK mode (not yet implemented) to turn off the screen.
+- A STANDBY mode has been implemented that shows a "STANDBY" message on the screen and blinks every 2 seconds until a command is received to return to the SOURCE mode.
+- The code can process specific commands (SRC, VOL, BAS, TRE, CHN, LED, BTC, VBS, BEP) and update the on-screen information accordingly.
 
-1. Conecta los componentes como se ha indicado en la sección "Conexiones".
-1. Sube el código al ESP32 utilizando el IDE de Arduino.
-1. Conecta el amplificador de audio y asegúrate de que esté enviando comandos UART a través del puerto serial.
-1. Observa la información en pantalla y controla los diferentes modos de visualización enviando los comandos correspondientes a través de la comunicación UART.
+**Usage**
 
-**Notas**
+1. Connect the components as indicated in the "Connections" section.
+1. Upload the code to the ESP32 using the Arduino IDE.
+1. Connect the audio amplifier and make sure it is sending UART commands through the serial port.
+1. Observe the information on the screen and control the different display modes by sending the corresponding commands through UART communication.
 
-- Si deseas agregar más comandos o funcionalidades, puedes modificar la función **processUARTCommand** para manejar los nuevos comandos y actualizar la información en pantalla según sea necesario.
+**Notes**
+- Remember that for UART communication between ports, a proper connection between both devices is necessary, as described in the following image.
+  
+  ![thumbnail_maxresdefault](https://github.com/user-attachments/assets/9f765adf-bf28-4f6a-9c08-a38e642eefdb)
+- To customize the names of the audio sources shown on the screen, modify the **mapAudioSource()** function. To add new UART commands or functionalities, extend the **processUARTCommand()** function by adding the command to the filter list and implementing its corresponding logic.
 
-**Créditos**
+**Credits**
 
-Este proyecto ha sido creado por Richard Mequert [Zerous] y está inspirado en el trabajo de ResinChem Tech y la documentación de las librerías utilizadas.
+This project was created by Richard Mequert [Zerous] and is inspired by the work of ResinChem Tech and the documentation of the libraries used.
+
